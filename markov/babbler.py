@@ -1,6 +1,7 @@
 import random
 import glob
 import sys
+import random
 
 """
 Markov Babbler
@@ -9,6 +10,7 @@ After being trained on text from various authors, can
 'babble', or generate random walks, and produce text that
 vaguely sounds like the author.
 """
+
 
 class Babbler:
     def __init__(self, n, seed=None):
@@ -19,9 +21,12 @@ class Babbler:
         self.n = n
         if seed != None:
             random.seed(seed)
-        # TODO: your code goes here
-    
-    
+        self.ngramlist = []
+        self.startersL = []
+        self.stoppersL = []
+        self.map = {}
+        self.ngramf = []
+
     def add_sentence(self, sentence):
         """
         Process the given sentence.
@@ -35,9 +40,29 @@ class Babbler:
         for 'end of line', and since it is capitalized and all of the
         text from the book is lower-case, it will be unambiguous.
         """
-        pass
 
-    
+        listsent = sentence.lower().split()
+
+        self.startersL.append(" ".join(listsent[0:self.n]))
+
+        for i in range(len(listsent) - self.n + 1):
+            if " ".join(listsent[i:i + self.n]) not in self.ngramlist:
+                self.ngramlist.append(" ".join(listsent[i:i + self.n]))
+
+            currentngram = " ".join(listsent[i:i + self.n])
+
+            if currentngram in self.map:
+                if i is len(listsent) - self.n:
+                    self.map[currentngram].append("EOL")
+                else:
+                    self.map[currentngram].append(" ".join(listsent[i + self.n: i + self.n + 1]))
+            else:
+                self.map[currentngram] = listsent[i + self.n: i + self.n + 1]
+                if i is len(listsent) - self.n:
+                    self.map[currentngram].append("EOL")
+
+        self.stoppersL.append(" ".join(listsent[len(listsent) - self.n:len(listsent) + self.n]))
+
     def add_file(self, filename):
         """
         This method done for you. It just calls your add_sentence() method
@@ -46,7 +71,6 @@ class Babbler:
         """
         for line in [line.rstrip().lower() for line in open(filename, errors='ignore').readlines()]:
             self.add_sentence(line)
-    
 
     def get_starters(self):
         """
@@ -54,8 +78,7 @@ class Babbler:
         The resulting list may contain duplicates, because one n-gram may start
         multiple sentences.
         """
-        pass
-    
+        return self.startersL
 
     def get_stoppers(self):
         """
@@ -63,8 +86,7 @@ class Babbler:
         The resulting value may contain duplicates, because one n-gram may stop
         multiple sentences.
         """
-        pass
-
+        return self.stoppersL
 
     def get_successors(self, ngram):
         """
@@ -81,19 +103,20 @@ class Babbler:
 
         If the given state never occurs, return an empty list.
         """
-        pass
-    
+        if ngram not in self.map:
+            return []
+        else:
+            return self.map[ngram]
 
     def get_all_ngrams(self):
         """
         Return all the possible n-grams, or n-word sequences, that we have seen
         across all sentences.
-        
+
         Probably a one-line method.
         """
-        pass
+        return self.ngramlist
 
-    
     def has_successor(self, ngram):
         """
         Return True if the given ngram has at least one possible successor
@@ -101,9 +124,11 @@ class Babbler:
         if we have ever seen a given ngram, because ngrams with no successor
         words must not have occurred in the training sentences.
         """
-        pass
-    
-    
+        if ngram in self.map:
+            return True
+        else:
+            return False
+
     def get_random_successor(self, ngram):
         """
         Given an n-gram, randomly pick from the possible words
@@ -113,42 +138,77 @@ class Babbler:
         'the dog dances quickly'
         'the dog dances with the cat'
         'the dog dances with me'
-        
+
         and we call get_random_next_word() for the state 'the dog dances',
         we should get 'quickly' about 1/3 of the time, and 'with' 2/3 of the time.
         """
-        pass
-    
+        templist = self.get_successors(ngram)
+        # return random.choice(templist)
+        # print(templist)
+        weight = 1
+        tempmap = {}
+        for i in templist:
+            if i not in tempmap:
+                # print("INSIDE THE MAP", i)
+                tempmap[i] = 1
+            else:
+                tempmap[i] = tempmap[i] + 1
+
+        for v in tempmap.values():
+            weight = weight + v
+
+        realrand = random.randint(1, weight)
+        # print(realrand)
+        check = True
+        while check:
+            for k in tempmap.keys():
+                if tempmap[k] <= 0:
+                    return k
+                else:
+                    tempmap[k] = tempmap[k] - realrand
 
     def babble(self):
         """
         Generate a random sentence using the following algorithm:
-        
-        1: Pick a starter ngram. This is the current ngram, and also 
+
+        1: Pick a starter ngram. This is the current ngram, and also
         the current sentence so far.
         Suppose the starter ngram is 'a b c'
-        
+
         2: Choose a successor word based on the current ngram.
         3: If the successor word is 'EOL', then return the current sentence.
         4: Otherwise, add the word to the end of the sentence
         (meaning sentence is now 'a b c d')
-        5: Also add the word to the end of the current ngram, and 
+        5: Also add the word to the end of the current ngram, and
         remove the first word from the current ngram.
         This produces 'b c d' for our example.
         6: Repeat step #2 until you generate 'EOL'.
         """
-        pass
-            
+        stlist = self.get_starters()
+        first = random.randrange(len(stlist))
+        bsent = stlist[first].split()
+        final = ""
+        cont = self.get_random_successor(" ".join(bsent[0:]))
+        while cont != "EOL":
+            final = final + " " + cont
+            bsent.append(cont)
+            # print(bsent)
+            bsent = bsent[1:]
+            # print(bsent)
+            cont = self.get_random_successor(" ".join(bsent[0:]))
 
-def main(n=3, filename='tests/test1.txt', num_sentences=5):
+        return final
+
+
+def main(n=2, filename='tests/test3.txt', num_sentences=40):
     """
     Simple test driver.
     """
-    
+
     print(filename)
     babbler = Babbler(n)
     babbler.add_file(filename)
-        
+
     print(f'num starters {len(babbler.get_starters())}')
     print(f'num ngrams {len(babbler.get_all_ngrams())}')
     print(f'num stoppers {len(babbler.get_stoppers())}')
@@ -159,8 +219,8 @@ def main(n=3, filename='tests/test1.txt', num_sentences=5):
 if __name__ == '__main__':
     # remove the first parameter, which should be babbler.py, the name of the script
     sys.argv.pop(0)
-    n = 3
-    filename = 'tests/test1.txt'
+    n = 4
+    filename = 'tests/test3.txt'
     num_sentences = 5
     if len(sys.argv) > 0:
         n = int(sys.argv.pop(0))
