@@ -288,6 +288,8 @@ class CornersProblem(search.SearchProblem):
         # Please add any code here which you would like to use
         # in initializing the problem
         "*** YOUR CODE HERE ***"
+        self.mystate = [self.corners, self.startingPosition]
+
 
     def getStartState(self):
         """
@@ -295,14 +297,16 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.mystate
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return len(self.mystate[0]) == 0
+
+
 
     def getSuccessors(self, state):
         """
@@ -323,10 +327,16 @@ class CornersProblem(search.SearchProblem):
             #   dx, dy = Actions.directionToVector(action)
             #   nextx, nexty = int(x + dx), int(y + dy)
             #   hitsWall = self.walls[nextx][nexty]
-
-            "*** YOUR CODE HERE ***"
+            x, y = self.startingPosition
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            hitsWall = self.walls[nextx][nexty]
+            if not hitsWall:
+                nextPos = (nextx, nexty)
+                successors.append((nextPos, action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
+        print(successors)
         return successors
 
     def getCostOfActions(self, actions):
@@ -361,6 +371,8 @@ def cornersHeuristic(state, problem):
 
     "*** YOUR CODE HERE ***"
     return 0 # Default to trivial solution
+
+
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
@@ -424,6 +436,13 @@ class AStarFoodSearchAgent(SearchAgent):
         self.searchFunction = lambda prob: search.aStarSearch(prob, foodHeuristic)
         self.searchType = FoodSearchProblem
 
+def mhelper(start, goal, problem):
+    problem2 = PositionSearchProblem(problem.startingGameState, start = start, goal= goal, warn= False, visualize= False)
+
+    # return manhattanHeuristic(start, problem2) this only gives 3/4 from the autograder 9000+ nodes stupid way!!!
+    print(len(search.astar(problem2, heuristic=euclideanHeuristic)))
+    return len(search.astar(problem2, heuristic=euclideanHeuristic)) #5/4 4000+ nodes only!!!
+
 def foodHeuristic(state, problem):
     """
     Your heuristic for the FoodSearchProblem goes here.
@@ -454,7 +473,15 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
-    return 0
+    flist = foodGrid.asList()
+    # maxL = 0
+
+    if len(flist) == 0:
+        return 0
+
+    return max(mhelper(position, i, problem) for i in flist)
+
+
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
@@ -484,8 +511,7 @@ class ClosestDotSearchAgent(SearchAgent):
         walls = gameState.getWalls()
         problem = AnyFoodSearchProblem(gameState)
 
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return search.ucs(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
     """
@@ -521,7 +547,7 @@ class AnyFoodSearchProblem(PositionSearchProblem):
         x,y = state
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        return self.food[x][y]
 
 def mazeDistance(point1, point2, gameState):
     """

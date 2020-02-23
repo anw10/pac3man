@@ -1,18 +1,3 @@
-# autograder.py
-# -------------
-# Licensing Information:  You are free to use or extend these projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
-# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero
-# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and
-# Pieter Abbeel (pabbeel@cs.berkeley.edu).
-
-
-# imports from python standard library
 import grading
 import imp
 import optparse
@@ -22,7 +7,7 @@ import sys
 import projectParams
 import random
 random.seed(0)
-try: 
+try:
     from pacman import GameState
 except:
     pass
@@ -167,7 +152,6 @@ ERROR_HINT_MAP = {
         a line of code assuming that the state is (x, y) and we run your code
         on a state space with (x, y, z), this error could be thrown. Try
         making your code more general and submit again!
-
     """
   }
 }

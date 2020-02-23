@@ -87,17 +87,90 @@ def depthFirstSearch(problem):
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    root = problem.getStartState()
+
+    stack = util.Stack()
+    stack.push((root, []))
+    myset = set()
+
+
+    while stack.isEmpty() is False:
+        curr, caction = stack.pop()
+
+        if problem.isGoalState(curr):
+            return caction
+
+        if curr not in myset:
+            myset.add(curr)
+        else:
+            continue
+
+        poss = problem.getSuccessors(curr)
+
+        for(nextloc, action, cost) in poss:
+            if nextloc not in myset:
+                stack.push((nextloc, caction + [action]))
+
+
+
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    root = problem.getStartState()
+
+    queue = util.Queue()
+    queue.push((root, []))
+    myset = set()
+
+    while queue.isEmpty() is False:
+        curr, caction = queue.pop()
+
+        if problem.isGoalState(curr):
+            # print(caction)
+            return caction
+
+        #this is to pass an issue with q5 where it thinks my successors are passing on as a list
+        if type(curr) is list:
+           curr = tuple(curr)
+
+        if curr not in myset:
+            myset.add(curr)
+        else:
+            continue
+
+        poss = problem.getSuccessors(curr)
+
+        for (nextloc, action, cost) in poss:
+            if nextloc not in myset:
+                queue.push((nextloc, caction + [action]))
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    root = problem.getStartState()
+
+    queue = util.PriorityQueue()
+    queue.push((root, []),0)
+    myset = set()
+
+    while queue.isEmpty() is False:
+        curr, caction = queue.pop()
+
+        if problem.isGoalState(curr):
+            return caction
+
+        if curr not in myset:
+            myset.add(curr)
+        else:
+            continue
+
+        poss = problem.getSuccessors(curr)
+
+        for (nextloc, action, cost) in poss:
+            if nextloc not in myset:
+                queue.update((nextloc, caction + [action]), cost + problem.getCostOfActions(caction))
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +182,28 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    root = problem.getStartState()
+
+    queue = util.PriorityQueue()
+    queue.push((root, []), 0)
+    myset = set()
+
+    while queue.isEmpty() is False:
+        curr, caction = queue.pop()
+
+        if problem.isGoalState(curr):
+            return caction
+
+        if curr not in myset:
+            myset.add(curr)
+        else:
+            continue
+
+        poss = problem.getSuccessors(curr)
+
+        for (nextloc, action, cost) in poss:
+            if nextloc not in myset:
+                queue.update((nextloc, caction + [action]), cost + problem.getCostOfActions(caction) + heuristic(nextloc,problem))
 
 
 # Abbreviations
